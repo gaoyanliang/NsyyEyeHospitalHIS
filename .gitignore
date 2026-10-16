@@ -1,0 +1,38 @@
+# ---- JetBrains IDE ----
+# workspace.xml 记录本地窗口布局/最近打开文件，属于个人环境，不入库
+.idea/workspace.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/usage.statistics.xml
+.idea/dictionaries/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ---- macOS ----
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# ---- 编辑器/临时文件 ----
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# ---- Office 临时/锁文件 ----
+# 打开 docx/xlsx 时生成的隐藏临时文件
+~$*.doc*
+~$*.xls*
+~$*.ppt*
+*.lock
+
+# ---- 导出产物(需要留档时用 git add -f 强制加入) ----
+/dist/
+/build/
+/导出/
