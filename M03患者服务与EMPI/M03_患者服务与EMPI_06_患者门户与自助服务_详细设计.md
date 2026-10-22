@@ -1204,49 +1204,49 @@ M03-02 执行合并
 |---|---|
 | 0 | 成功 |
 | 40001 | 参数校验失败 |
-| 52001 | 门户账号不存在 |
-| 52002 | 门户账号已禁用 |
-| 52003 | 门户账号已注销 |
-| 52004 | 微信授权失败 |
-| 52005 | 微信 openid 无效 |
-| 52006 | 手机号格式不正确 |
-| 52007 | 验证码错误或已过期 |
-| 52008 | 验证码发送过于频繁 |
-| 52009 | 验证码发送次数超限 |
-| 52010 | 身份证核验失败 |
-| 52011 | 身份证核验次数超限 |
-| 52012 | 人脸核验失败 |
-| 52013 | 设备未注册 |
-| 52014 | 设备已离线 |
-| 52015 | Token 无效或已过期 |
-| 52016 | Token 已被吊销 |
-| 52017 | 绑定关系不存在 |
-| 52018 | 患者不存在 |
-| 52019 | 该患者已被其他账号绑定 |
-| 52020 | 绑定数量已达上限 |
-| 52021 | 本人绑定不可自助解绑 |
-| 52022 | 家属关系不能为本人 |
-| 52023 | 验证等级不足 |
-| 52024 | 代操作权限不足 |
-| 52025 | 协议未签署 |
-| 52026 | 协议版本已更新 |
-| 52027 | 授权不存在 |
-| 52028 | 授权已撤回 |
-| 52029 | 该授权不可撤回 |
-| 52030 | 建档信息已存在 |
-| 52031 | 建档信息校验失败 |
-| 52032 | OCR 识别失败 |
-| 52033 | 门户配置不存在 |
-| 52034 | 公告不存在 |
-| 52035 | M01 字典服务不可用 |
-| 52036 | M04 预约服务不可用 |
-| 52037 | M12/M13 报告服务不可用 |
-| 52038 | M16 收费服务不可用 |
-| 52039 | M21 集成服务不可用 |
-| 52040 | 请求过于频繁 |
-| 50001 | 权限校验失败 |
-| 50002 | 依赖服务不可用 |
-| 50003 | 数据库异常 |
+| "0306001" | 门户账号不存在 |
+| "0306002" | 门户账号已禁用 |
+| "0306003" | 门户账号已注销 |
+| "0306004" | 微信授权失败 |
+| "0306005" | 微信 openid 无效 |
+| "0306006" | 手机号格式不正确 |
+| "0306007" | 验证码错误或已过期 |
+| "0306008" | 验证码发送过于频繁 |
+| "0306009" | 验证码发送次数超限 |
+| "0306010" | 身份证核验失败 |
+| "0306011" | 身份证核验次数超限 |
+| "0306012" | 人脸核验失败 |
+| "0306013" | 设备未注册 |
+| "0306014" | 设备已离线 |
+| "0306015" | Token 无效或已过期 |
+| "0306016" | Token 已被吊销 |
+| "0306017" | 绑定关系不存在 |
+| "0306018" | 患者不存在 |
+| "0306019" | 该患者已被其他账号绑定 |
+| "0306020" | 绑定数量已达上限 |
+| "0306021" | 本人绑定不可自助解绑 |
+| "0306022" | 家属关系不能为本人 |
+| "0306023" | 验证等级不足 |
+| "0306024" | 代操作权限不足 |
+| "0306025" | 协议未签署 |
+| "0306026" | 协议版本已更新 |
+| "0306027" | 授权不存在 |
+| "0306028" | 授权已撤回 |
+| "0306029" | 该授权不可撤回 |
+| "0306030" | 建档信息已存在 |
+| "0306031" | 建档信息校验失败 |
+| "0306032" | OCR 识别失败 |
+| "0306033" | 门户配置不存在 |
+| "0306034" | 公告不存在 |
+| "0306035" | M01 字典服务不可用 |
+| "0306036" | M04 预约服务不可用 |
+| "0306037" | M12/M13 报告服务不可用 |
+| "0306038" | M16 收费服务不可用 |
+| "0306039" | M21 集成服务不可用 |
+| "0306040" | 请求过于频繁 |
+| "0306041" | 权限校验失败 |
+| "0306042" | 依赖服务不可用 |
+| "0306043" | 数据库异常 |
 
 > **注意：** M03-06 的错误码段与其他子模块不冲突；M03-02 已占用 520xx 段，实际实现时以各子模块实际分配为准，冲突时按模块内顺序顺延。
 
@@ -1426,7 +1426,7 @@ POST /api/v1/portal/bindings
 
 ```json
 {
-  "code": 52018,
+  "code": "0306018",
   "message": "未查询到该患者就诊记录，可选择自助建档",
   "data": {
     "need_register": true,
@@ -1440,7 +1440,7 @@ POST /api/v1/portal/bindings
 
 ```json
 {
-  "code": 52019,
+  "code": "0306019",
   "message": "该就诊人已被其他账号绑定，如需变更请联系客服",
   "data": {
     "suggestion": "CONTACT_SERVICE",
@@ -1502,7 +1502,7 @@ POST /api/v1/portal/register/submit
 
 ```json
 {
-  "code": 52030,
+  "code": "0306030",
   "message": "系统检测到可能已有您的就诊记录，请确认",
   "data": {
     "task_id": "RG20261020143210001",
@@ -1646,7 +1646,7 @@ GET /api/v1/portal/reports/RPT202610180012?binding_id=1001
 
 ```json
 {
-  "code": 52023,
+  "code": "0306023",
   "message": "查看报告需完成身份验证",
   "data": {
     "current_level": "BASIC",
@@ -1962,13 +1962,13 @@ class PortalAuthService:
                             request) -> dict:
         """微信授权登录"""
         if not payload.agree_service or not payload.agree_privacy:
-            raise BizException(52025, "请先阅读并同意服务协议与隐私政策")
+            raise BizException("0306025", "请先阅读并同意服务协议与隐私政策")
 
         # 1. 换取 openid
         oauth = await self.m21.wechat_oauth(
             code=payload.code, channel=payload.channel)
         if not oauth or not oauth.get("openid"):
-            raise BizException(52004, "微信授权失败，请重试")
+            raise BizException("0306004", "微信授权失败，请重试")
 
         openid = oauth["openid"]
         unionid = oauth.get("unionid")
@@ -1978,7 +1978,7 @@ class PortalAuthService:
             openid, unionid, payload.channel)
 
         if account.status != "ACTIVE":
-            raise BizException(52002, "账号已被禁用，请联系客服")
+            raise BizException("0306002", "账号已被禁用，请联系客服")
 
         # 3. 可选：获取手机号
         phone = None
@@ -2013,11 +2013,11 @@ class PortalAuthService:
                          request) -> dict:
         """手机验证码登录"""
         if not payload.agree_service or not payload.agree_privacy:
-            raise BizException(52025, "请先阅读并同意服务协议与隐私政策")
+            raise BizException("0306025", "请先阅读并同意服务协议与隐私政策")
 
         phone = payload.phone
         if not self._valid_phone(phone):
-            raise BizException(52006, "手机号格式不正确")
+            raise BizException("0306006", "手机号格式不正确")
 
         # 校验验证码
         await self._verify_sms(phone, payload.sms_code)
@@ -2045,7 +2045,7 @@ class PortalAuthService:
             self.db.add(account)
         else:
             if account.status != "ACTIVE":
-                raise BizException(52002, "账号已被禁用，请联系客服")
+                raise BizException("0306002", "账号已被禁用，请联系客服")
             account.last_login_at = datetime.now()
             account.last_login_ip = self._client_ip(request)
             account.login_count = (account.login_count or 0) + 1
@@ -2073,7 +2073,7 @@ class PortalAuthService:
         stored = await redis_client.get(key)
 
         if not stored or stored != code:
-            raise BizException(52007, "验证码错误或已过期")
+            raise BizException("0306007", "验证码错误或已过期")
 
         # 一次性使用
         await redis_client.delete(key)
@@ -2313,7 +2313,7 @@ class PortalBindingService:
         )).scalar_one_or_none()
 
         if exist_self:
-            raise BizException(52021, "已绑定本人，如需更换请联系客服")
+            raise BizException("0306021", "已绑定本人，如需更换请联系客服")
 
         return await self._do_bind(
             account, payload, "SELF", request, require_strong=True)
@@ -2322,7 +2322,7 @@ class PortalBindingService:
                             request) -> dict:
         """绑定家属"""
         if payload.relation == "SELF":
-            raise BizException(52022, "家属关系不能为本人")
+            raise BizException("0306022", "家属关系不能为本人")
 
         # 数量校验
         count = (await self.db.execute(
@@ -2333,7 +2333,7 @@ class PortalBindingService:
         )).scalar_one()
 
         if count >= self.MAX_BINDINGS:
-            raise BizException(52020, f"最多绑定 {self.MAX_BINDINGS} 位就诊人")
+            raise BizException("0306020", f"最多绑定 {self.MAX_BINDINGS} 位就诊人")
 
         return await self._do_bind(
             account, payload, payload.relation, request, require_strong=True)
@@ -2346,7 +2346,7 @@ class PortalBindingService:
         lock_key = f"portal:verify:fail:{account.account_id}"
         fails = int(await redis_client.get(lock_key) or 0)
         if fails >= self.MAX_VERIFY_FAIL:
-            raise BizException(52011, "验证失败次数过多，请 1 小时后再试")
+            raise BizException("0306011", "验证失败次数过多，请 1 小时后再试")
 
         # 2. 二要素核验
         verified = await self.m21.verify_idcard(
@@ -2356,7 +2356,7 @@ class PortalBindingService:
         if not verified:
             await redis_client.incr(lock_key)
             await redis_client.expire(lock_key, self.LOCK_SECONDS)
-            raise BizException(52010, "姓名与证件号不匹配，请核对后重试")
+            raise BizException("0306010", "姓名与证件号不匹配，请核对后重试")
 
         await redis_client.delete(lock_key)
 
@@ -2365,7 +2365,7 @@ class PortalBindingService:
         patient = await self.mpi.get_by_id_hash(id_hash)
 
         if not patient:
-            raise BizException(52018, "未查询到该患者就诊记录，可选择自助建档")
+            raise BizException("0306018", "未查询到该患者就诊记录，可选择自助建档")
 
         patient_id = patient["patient_id"]
 
@@ -2378,7 +2378,7 @@ class PortalBindingService:
         )).scalar_one_or_none()
 
         if other and other.account_id != account.account_id:
-            raise BizException(52019, "该就诊人已被其他账号绑定，如需变更请联系客服")
+            raise BizException("0306019", "该就诊人已被其他账号绑定，如需变更请联系客服")
 
         # 5. 同账号重复绑定
         if other and other.account_id == account.account_id:
@@ -2432,10 +2432,10 @@ class PortalBindingService:
         )).scalar_one_or_none()
 
         if not binding:
-            raise BizException(52017, "绑定关系不存在")
+            raise BizException("0306017", "绑定关系不存在")
 
         if binding.relation == "SELF":
-            raise BizException(52021, "本人绑定不可自助解绑，请联系客服")
+            raise BizException("0306021", "本人绑定不可自助解绑，请联系客服")
 
         binding.status = "UNBOUND"
         binding.unbound_at = datetime.now()
@@ -2461,7 +2461,7 @@ class PortalBindingService:
         )).scalar_one_or_none()
 
         if not binding:
-            raise BizException(52017, "绑定关系不存在")
+            raise BizException("0306017", "绑定关系不存在")
 
         method = payload.get("method")
 
@@ -2471,7 +2471,7 @@ class PortalBindingService:
                 id_no=payload.get("id_no"),
             )
             if not ok:
-                raise BizException(52010, "身份证核验失败")
+                raise BizException("0306010", "身份证核验失败")
 
         elif method == "FACE":
             ok = await self.m21.verify_face(
@@ -2480,7 +2480,7 @@ class PortalBindingService:
                 image=payload.get("image_base64"),
             )
             if not ok:
-                raise BizException(52012, "人脸核验失败")
+                raise BizException("0306012", "人脸核验失败")
 
         else:
             raise BizException(40001, "不支持的验证方式")
@@ -2633,11 +2633,11 @@ class PortalReportService:
             report = await self.m13.get_report(report_id)
 
         if not report:
-            raise BizException(52037, "报告不存在或已删除")
+            raise BizException("0306037", "报告不存在或已删除")
 
         # 关键：患者归属校验
         if report.get("patient_id") != binding.patient_id:
-            raise BizException(52023, "无权查看该报告")
+            raise BizException("0306023", "无权查看该报告")
 
         return report
 
@@ -2651,14 +2651,14 @@ class PortalReportService:
         )).scalar_one_or_none()
 
         if not binding:
-            raise BizException(52017, "绑定关系不存在")
+            raise BizException("0306017", "绑定关系不存在")
 
         return binding
 
     def _check_verify_level(self, binding: MpiPortalBinding) -> None:
         """验证等级校验"""
         if binding.verify_level not in ("STRONG", "FAMILY"):
-            raise BizException(52023, "查看报告需完成身份验证")
+            raise BizException("0306023", "查看报告需完成身份验证")
 
     async def _check_rate_limit(self, account_id: str) -> None:
         """报告查看频控"""
@@ -2670,7 +2670,7 @@ class PortalReportService:
             await redis_client.expire(key, 60)
 
         if count > self.RATE_LIMIT_PER_MIN:
-            raise BizException(52040, "查看过于频繁，请稍后再试")
+            raise BizException("0306040", "查看过于频繁，请稍后再试")
 ```
 
 ---

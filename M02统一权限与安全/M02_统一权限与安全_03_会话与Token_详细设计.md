@@ -705,44 +705,44 @@ M02-02 认证通过
 |---|---|
 | 0 | 成功 |
 | 40001 | 参数校验失败 |
-| 53001 | Token 缺失 |
-| 53002 | Token 格式错误 |
-| 53003 | Token 签名无效 |
-| 53004 | Token 已过期 |
-| 53005 | Token 尚未生效 |
-| 53006 | Token 类型错误 |
-| 53007 | Token 已被吊销 |
-| 53008 | Token 受众不匹配 |
-| 53009 | Token 签发者不匹配 |
-| 53010 | Token 已加入黑名单 |
-| 53011 | 会话不存在 |
-| 53012 | 会话已过期 |
-| 53013 | 会话已吊销 |
-| 53014 | 会话空闲超时 |
-| 53015 | 会话绝对超时 |
-| 53016 | 会话不属于当前用户 |
-| 53017 | 不能下线当前会话 |
-| 53018 | Refresh Token 无效 |
-| 53019 | Refresh Token 已使用（轮换后） |
-| 53020 | **Refresh Token 重用，会话已吊销** |
-| 53021 | Refresh Token 已过期 |
-| 53022 | 并发会话超限 |
-| 53023 | 密钥不存在 |
-| 53024 | 密钥已停用 |
-| 53025 | 密钥轮换失败 |
-| 53026 | 会话配置不存在 |
-| 53027 | 会话配置参数非法 |
-| 53028 | 黑名单条目不存在 |
-| 53029 | 账号状态异常，会话已失效 |
-| 53030 | 会话创建失败 |
-| 53031 | 会话数量已达上限 |
-| 53032 | 该会话已处于非活跃状态 |
-| 53033 | 不支持的操作 |
-| 53034 | 令牌版本不匹配 |
-| 53035 | 令牌已被替换 |
-| 50001 | 权限校验失败 |
-| 50002 | 依赖服务不可用 |
-| 50003 | 数据库异常 |
+| "0203001" | Token 缺失 |
+| "0203002" | Token 格式错误 |
+| "0203003" | Token 签名无效 |
+| "0203004" | Token 已过期 |
+| "0203005" | Token 尚未生效 |
+| "0203006" | Token 类型错误 |
+| "0203007" | Token 已被吊销 |
+| "0203008" | Token 受众不匹配 |
+| "0203009" | Token 签发者不匹配 |
+| "0203010" | Token 已加入黑名单 |
+| "0203011" | 会话不存在 |
+| "0203012" | 会话已过期 |
+| "0203013" | 会话已吊销 |
+| "0203014" | 会话空闲超时 |
+| "0203015" | 会话绝对超时 |
+| "0203016" | 会话不属于当前用户 |
+| "0203017" | 不能下线当前会话 |
+| "0203018" | Refresh Token 无效 |
+| "0203019" | Refresh Token 已使用（轮换后） |
+| "0203020" | **Refresh Token 重用，会话已吊销** |
+| "0203021" | Refresh Token 已过期 |
+| "0203022" | 并发会话超限 |
+| "0203023" | 密钥不存在 |
+| "0203024" | 密钥已停用 |
+| "0203025" | 密钥轮换失败 |
+| "0203026" | 会话配置不存在 |
+| "0203027" | 会话配置参数非法 |
+| "0203028" | 黑名单条目不存在 |
+| "0203029" | 账号状态异常，会话已失效 |
+| "0203030" | 会话创建失败 |
+| "0203031" | 会话数量已达上限 |
+| "0203032" | 该会话已处于非活跃状态 |
+| "0203033" | 不支持的操作 |
+| "0203034" | 令牌版本不匹配 |
+| "0203035" | 令牌已被替换 |
+| "0203036" | 权限校验失败 |
+| "0203037" | 依赖服务不可用 |
+| "0203038" | 数据库异常 |
 
 ### 6.3 接口详细设计
 
@@ -783,7 +783,7 @@ POST /api/v1/auth/token/refresh
 
 ```json
 {
-  "code": 53020,
+  "code": "0203020",
   "message": "Refresh Token 已被使用，会话已安全吊销",
   "data": {
     "session_id": "sess_9e8d7c6b5a4f",
@@ -930,7 +930,7 @@ DELETE /api/v1/auth/sessions/me/sess_8d7c6b5a4f3e
 
 ```json
 {
-  "code": 53017,
+  "code": "0203017",
   "message": "不能通过此接口下线当前会话，请使用登出功能",
   "data": {},
   "trace_id": "9f8a7b6c"
@@ -2003,7 +2003,7 @@ class TokenService:
         # 1. 解析 refresh_token
         parts = req.refresh_token.split("_")
         if len(parts) != 3 or parts[0] != "rt":
-            raise BizException(53018, "Refresh Token 格式无效")
+            raise BizException("0203018", "Refresh Token 格式无效")
 
         refresh_raw = parts[1]
         account_id = int(parts[2])
@@ -2029,22 +2029,22 @@ class TokenService:
                 # 检测到重用 → 吊销整个会话
                 await self._revoke_with_blacklist(
                     rotated.session_id, "TOKEN_REUSE")
-                raise BizException(53020,
+                raise BizException("0203020",
                     "Refresh Token 已被使用，会话已安全吊销",
                     data={"session_id": rotated.session_id,
                           "revoked": True,
                           "reason": "TOKEN_REUSE_DETECTED",
                           "hint": "如非本人操作，请立即修改密码"})
 
-            raise BizException(53018, "Refresh Token 无效")
+            raise BizException("0203018", "Refresh Token 无效")
 
         # 4. 会话状态
         if sess.status != "ACTIVE":
-            raise BizException(53013, f"会话已{sess.status}，请重新登录")
+            raise BizException("0203013", f"会话已{sess.status}，请重新登录")
 
         now = datetime.now()
         if sess.expire_at < now:
-            raise BizException(53021, "Refresh Token 已过期，请重新登录")
+            raise BizException("0203021", "Refresh Token 已过期，请重新登录")
 
         # 5. 生成新 Token
         account = {
@@ -2138,7 +2138,7 @@ class TokenService:
         )).scalar_one_or_none()
 
         if not key:
-            raise BizException(53023, "无活跃签名密钥")
+            raise BizException("0203023", "无活跃签名密钥")
 
         data = {"kid": key.kid, "secret": self._decrypt(key.secret_enc)}
         import json
@@ -2178,7 +2178,7 @@ class TokenService:
             select(SysSessionConfig).where(SysSessionConfig.id == 1)
         )).scalar_one_or_none()
         if not cfg:
-            raise BizException(53026, "会话配置不存在")
+            raise BizException("0203026", "会话配置不存在")
         return {
             "access_token_ttl_min": cfg.access_token_ttl_min,
             "refresh_token_ttl_days": cfg.refresh_token_ttl_days,
@@ -2211,7 +2211,7 @@ class TokenService:
         result = await self.validate(token, check_session=True,
                                        check_account_status=False)
         if not result["valid"]:
-            raise BizException(53004, result.get("error_message", "Token 无效"))
+            raise BizException("0203004", result.get("error_message", "Token 无效"))
 
         config = await self._get_config()
         account = {
@@ -2251,7 +2251,7 @@ class TokenService:
         result = await self.validate(token, check_session=True,
                                        check_account_status=False)
         if not result["valid"]:
-            raise BizException(53001, "Token 无效")
+            raise BizException("0203001", "Token 无效")
         return result
 ```
 
@@ -2307,7 +2307,7 @@ class SessionService:
             # 并发超限
             if len(existing) >= max_sessions:
                 if config["overflow_strategy"] == "REJECT":
-                    raise BizException(53022,
+                    raise BizException("0203022",
                         f"该账号已有 {max_sessions} 个活跃会话，请先下线其他设备")
                 # 踢最旧
                 to_kick = existing[:len(existing) - max_sessions + 1]
@@ -2409,10 +2409,10 @@ class SessionService:
         )).scalar_one_or_none()
 
         if not sess:
-            raise BizException(53011, f"会话 {session_id} 不存在")
+            raise BizException("0203011", f"会话 {session_id} 不存在")
 
         if sess.status != "ACTIVE":
-            raise BizException(53032, f"会话状态为 {sess.status}，无需吊销")
+            raise BizException("0203032", f"会话状态为 {sess.status}，无需吊销")
 
         sess.status = "REVOKED"
         sess.revoked_at = datetime.now()
@@ -2513,7 +2513,7 @@ class SessionService:
         """下线指定设备"""
         current_sid = getattr(user, "session_id", None)
         if session_id == current_sid:
-            raise BizException(53017,
+            raise BizException("0203017",
                 "不能通过此接口下线当前会话，请使用登出功能")
 
         sess = (await self.db.execute(
@@ -2521,10 +2521,10 @@ class SessionService:
         )).scalar_one_or_none()
 
         if not sess:
-            raise BizException(53011, "会话不存在")
+            raise BizException("0203011", "会话不存在")
 
         if sess.account_id != user.account_id:
-            raise BizException(53016, "该会话不属于当前用户")
+            raise BizException("0203016", "该会话不属于当前用户")
 
         result = await self.revoke(session_id, "SELF_KICK")
         return {
@@ -2552,7 +2552,7 @@ class SessionService:
             select(SysSession).where(SysSession.session_id == session_id)
         )).scalar_one_or_none()
         if not sess:
-            raise BizException(53011, "会话不存在")
+            raise BizException("0203011", "会话不存在")
 
         result = await self.revoke(session_id, "FORCE_LOGOUT")
 
