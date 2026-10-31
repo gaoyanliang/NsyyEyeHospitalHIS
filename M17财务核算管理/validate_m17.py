@@ -137,6 +137,38 @@ def check_ledger_invariants(t, fp_name):
     return issues
 
 
+def check_no_duplicate_sections(t, fp_name):
+    """M17 专属：关键章节必须唯一（多人并行补同一文件时极易产生重复）。"""
+    issues = []
+    # 模板内嵌的四反引号代码块（共享规范用）不算正文
+    body = re.sub(r"(?ms)^#{0,2}?\s*`{4}.*?`{4}", "", t)
+
+    must_once = [
+        (r"^## 附录 F", "附录 F"),
+        (r"^\*\*文档结束\*\*", "文档结束"),
+    ]
+    if fp_name.endswith("_数据结构.md"):
+        # 版本历史块：取「最小命中数」，标题与表头都可作为标志
+        n_h = len(re.findall(r"^## 版本历史", body, re.M))
+        n_t = len(re.findall(r"^\| 版本 \| 日期 \|", body, re.M))
+        if max(n_h, n_t) > 1:
+            issues.append((0, "版本历史 出现 %d 次（应为 1 次，疑似重复）" % max(n_h, n_t)))
+        must_once.append((r"^### 4\.\d+ Pydantic Schema 定义", "Pydantic Schema 章节"))
+
+    for pat, label in must_once:
+        n = len(re.findall(pat, body, re.M))
+        if n > 1:
+            issues.append((0, "%s 出现 %d 次（应为 1 次，疑似多人并行写入产生重复）" % (label, n)))
+
+    # 附录 A~F 各自唯一
+    for lt in "ABCDEF":
+        n = len(re.findall(r"^## 附录 %s" % lt, body, re.M))
+        if n > 1:
+            issues.append((0, "附录 %s 出现 %d 次" % (lt, n)))
+
+    return issues
+
+
 def check_module_doc(t):
     issues = []
     h2 = re.findall(r"^## (.+)$", t, re.M)
@@ -239,6 +271,8 @@ def validate(fp):
     t = fp.read_text(encoding="utf-8")
     issues = check_common(fp, t)
     issues += check_ledger_invariants(t, fp.name)
+    if not fp.name.startswith("00_"):
+        issues += check_no_duplicate_sections(t, fp.name)
 
     if fp.name in MODULE_DOCS or fp.name.startswith("00_"):
         issues += check_module_doc(t)
