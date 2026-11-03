@@ -209,7 +209,11 @@ def check_design(t):
         issues.append((0, "页面总览与第 5 章不一致: 仅总览=%s 仅详述=%s"
                        % (sorted(s_tree - s_h5), sorted(s_h5 - s_tree))))
 
-    apis = [int(x) for x in re.findall(r"^\|\s*\**API-(\d+)\**\s*\|", t, re.M)]
+    # 接口总览只在第 6.1 节内统计。附录 B 等处的 "| API-xx | ..." 行是对照表，
+    # 不是接口定义；若全文件扫描会被当成第二份接口表而误报「编号重复」。
+    sec61 = re.search(r"(?ms)^### 6\.1 .*?(?=^### 6\.2 )", t)
+    scope = sec61.group(0) if sec61 else t
+    apis = [int(x) for x in re.findall(r"^\|\s*\**API-(\d+)\**\s*\|", scope, re.M)]
     if apis:
         expect = list(range(1, max(apis) + 1))
         if sorted(set(apis)) != expect:
