@@ -9,11 +9,12 @@
   3. 页面总览树 P0x 与第 5 章 "### 5.x P0x" 双向一致
   4. 接口 API-01 起连续无断号，每一项都有 "#### API-xx" 详述
   5. AC>=35 / PF>=8 / DA>=5 / SC>=4，四类从 01 连续
-  6. 错误码 7 位、前缀 17、号段 170Nxxx 不越界
-  7. 数据结构：表前缀 m17_、表清单与 "### 4.x 表：" 一致、SQLAlchemy/Pydantic 章节、版本历史
+  6. 错误码 7 位、前缀 22、号段 22N0xxx 不越界
+  7. 数据结构：表前缀 m22_、表清单与 "### 4.x 表：" 一致、SQLAlchemy/Pydantic 章节、版本历史
   8. 【M22 专属】指标值字段不得使用 FLOAT/DOUBLE/REAL
   9. 【M22 专属】指标定义表必须有 (metric_code, version) 唯一约束
  10. 【M22 专属】指标事实表必须有采集幂等唯一键与溯源字段
+ 11. 【M22 专属】同一错误码在全文多处出现时语义必须与权威定义表一致（共享规范 §11.1）
  12. 模块级文档（总纲 / 汇总 / 共享规范）走独立检查
 """
 import ast
@@ -282,9 +283,206 @@ def check_struct(t):
     return issues
 
 
+ERRCODE_SEM_CACHE = {}
+
+
+def _norm_sem(s):
+    """归一化错误码含义：去反引号/加粗/空白/末尾标点，便于比对。"""
+    s = re.sub(r"[`*_]", "", s)
+    s = re.sub(r"\s+", "", s)
+    return s.rstrip("。；;,，.")
+
+
+CODE_RE = re.compile(r"\b(\d{7})\b")
+# 语义列的表头关键词，按优先级排列。
+# 注意：「常量名」列存的是英文常量（如 COLLECTTASKNOTFOUND），不是语义，
+# 必须排在最后且绝不单独命中，否则 M22-02 的整张表都会误判。
+SEM_HEADER_HINT = ("含义", "错误信息", "消息", "说明", "描述", "常量名")
+
+
+def _cell_code(cell):
+    """从一个表格单元格中取出 7 位错误码；不是错误码列返回 None。
+
+    各子模块错误码表的写法并不统一，实测有三种：
+        | 2203001 | ...            （裸数字）
+        | "2201001" | ...          （带双引号）
+        | `"229001"` | ...         （反引号包住带引号的值）
+    因此不能对整格做 fullmatch，只能取第一处 7 位数字。
+    """
+    s = re.sub(r"[`*\s\"']", "", cell)
+    m = CODE_RE.search(s)
+    if not m:
+        return None
+    rest = s.replace(m.group(1), "", 1)
+    return m.group(1) if not rest else None
+
+
+def _is_fixed_header(h):
+    h = _norm_sem(h)
+    return any(k in h for k in ("HTTP", "状态码", "触发", "场景", "接口", "分类",
+                                "所属", "级别", "是否", "常量", "重试", "码段", "号段"))
+
+
+# 分类列常见取值（M22-06 附录 C 用这一列标 SYSTEM/PARAM 等，不是语义）
+CATEGORY_WORDS = ("系统", "参数", "业务", "数据", "安全", "计算", "权限", "网络", "配置")
+
+
+_CAT_BYTES = "".join(CATEGORY_WORDS)
+_SEM_COL_HEAD_KEYWORDS = "说法种型义容息由属类值"
+
+# 需要跳过的高频中文列标题（这些列不是语义列）
+_SKIP_HEAD_WORDS = ("触发", "场景", "所属", "常量", "号段", "码段", "接口", "处理", "建议",
+                    "是否", "级别", "重试", "分类", "HTTP", "状态")
+
+
+def _pick_sem_index(hdr, ci):
+    """在表头里挑出承载语义的列：优先「含义/消息/错误信息」，其次「说明/描述」。
+
+    注意「常量名」列是英文常量，绝不能当语义，故不作为候选。
+    """
+    cleaned = [_norm_sem(h) for h in hdr]
+    for key in ("含义", "错误信息", "消息", "说明", "描述"):
+        for i, h in enumerate(cleaned):
+            if i != ci and key in h and not _is_fixed_header(h):
+                return i
+    return None
+
+
+def _code_semantics(t):
+    """抽取本文件错误码的权威语义 {code: 含义文本}。
+
+    共享规范规定「错误码定义表是唯一权威、其他章节禁止自行定义」，
+    但各子模块承载它的节号并不统一：
+      - M22-03 放在 6.6「错误码定义」，而 3.10「规则与错误码映射总表」
+        用了同样的 | 错误码 | 含义 | 表头，只是含义列已对齐；
+      - 其余多数放在 6.2.2 或附录 A。
+    因此：先取 6.6 节内的表（若有），再回退到全文任一含错误码列的表。
+    取每个码第一次出现的语义为准。
+    """
+    sec66 = re.search(r"(?ms)^### 6\.6 .*?(?=^### 6\.7 |^## 7\. )", t)
+    for scope in ([sec66.group(0)] if sec66 else []) + [t]:
+        out = _sem_table(scope)
+        if out:
+            return out
+    return {}
+
+
+def _sem_table(t):
+    out = {}
+    hdr = None
+    for line in t.split("\n"):
+        if not line.startswith("|"):
+            hdr = None
+            continue
+        if is_sep_row(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if hdr is None:
+            hdr = cells
+            continue
+        if len(cells) != len(hdr):
+            continue
+        ci = next((i for i, h in enumerate(hdr) if "错误码" in _norm_sem(h)), None)
+        if ci is None:
+            continue
+        code = _cell_code(row_c(cells, ci))
+        if not code:
+            continue
+        si = _pick_sem_index(hdr, ci)
+        if si is None:
+            continue
+        sem = _norm_sem(row_c(cells, si))
+        if sem:
+            out.setdefault(code, sem)
+    return out
+
+
+def row_c(cells, i):
+    return cells[i] if i < len(cells) else ""
+
+
+def _sim(a, b):
+    """字符二元组重合度，用来识别「粒度不支持」与「不支持的统计粒度」这类同义改写。"""
+    def grams(s):
+        s = re.sub(r"[\s，。；、：（）()\[\]【】/\\|]", "", s)
+        return {s[i:i + 2] for i in range(len(s) - 1)} if len(s) > 1 else {s}
+    ga, gb = grams(a), grams(b)
+    if not ga or not gb:
+        return 0.0
+    return len(ga & gb) / min(len(ga), len(gb))
+
+
+def _sem_like(s):
+    """判断一段文本像不像中文语义描述（而不是英文常量/数字/URL）。"""
+    return bool(re.search(r"[\u4e00-\u9fff]", s))
+
+
+def check_errcode_semantics(t, fp_name):
+    """同一错误码在全文多处出现时语义必须一致。
+
+    背景：M22-03 曾出现同一份文档里「错误码定义表 / 规则映射表 / 附录总表」
+    三处对同一错误码给出三套互不相干的含义（40 行中 33 行与 25 行冲突），
+    而旧版校验只查「格式、号段、越界」，完全查不出来。
+
+    判定口径：与权威定义做「包含」或「二元组重合度 >= 0.30」比对。
+    同义改写（「不支持的统计粒度」vs「粒度不支持」）算通过；
+    语义不同（「模板不存在」vs「期间已结束」）必须报出。
+    """
+    issues = []
+    canon = _code_semantics(t)
+    if not canon:
+        return issues
+
+    hdr = None
+    skip_table = False
+    for i, line in enumerate(t.split("\n"), 1):
+        if not line.startswith("|"):
+            hdr = None
+            skip_table = False
+            continue
+        if is_sep_row(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if hdr is None:
+            hdr = cells
+            # 业务校验规则表（| 编号 | 校验点 | 规则 | 错误码 | 提示 |）里，
+            # 错误码是「这条规则命中时抛什么」，右侧「提示」是给用户的话术，
+            # 二者本就不必等于错误码的通用含义，不属于语义冲突。
+            skip_table = any(re.search(r"提示|话术|消息文案", _norm_sem(h)) for h in hdr)
+            continue
+        if skip_table or len(cells) != len(hdr):
+            continue
+        for idx in range(len(cells)):
+            code = _cell_code(cells[idx])
+            if not code or code not in canon:
+                continue
+            # 取紧邻错误码之后第一个「像中文语义」的单元格，
+            # 跳过英文常量列（COLLECTTASKNOTFOUND）、HTTP 状态码、
+            # 以及分类列的单字取值（系统/参数/业务/数据/安全/计算）。
+            desc = None
+            for c in cells[idx + 1:]:
+                s = _norm_sem(c)
+                if not s or re.fullmatch(r"\d{3}", s):
+                    continue
+                if s in CATEGORY_WORDS:
+                    continue
+                if _sem_like(s):
+                    desc = s
+                    break
+            if not desc or desc in ("—", "-", "无"):
+                continue
+            a, b = canon[code], desc
+            if a in b or b in a or _sim(a, b) >= 0.30:
+                continue
+            issues.append((i, "错误码 %s 语义与权威定义表不一致：定义=「%s」此处=「%s」"
+                           % (code, canon[code][:40], desc[:40])))
+    return issues
+
+
 def validate(fp):
     t = fp.read_text(encoding="utf-8")
     issues = check_common(fp, t)
+    issues += check_errcode_semantics(t, fp.name)
     issues += check_metric_invariants(t, fp.name)
     if not fp.name.startswith("00_"):
         issues += check_no_duplicate_sections(t, fp.name)
