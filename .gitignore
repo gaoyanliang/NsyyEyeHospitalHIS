@@ -36,3 +36,5 @@ out/
 /dist/
 /build/
 /导出/
+__pycache__/
+*.pyc
